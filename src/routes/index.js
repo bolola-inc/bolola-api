@@ -1,10 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-router.get("/", function (req, res) {
-});
+const Auth = require("./AuthRoutes");
+const HostRoutes = require("./HostRoutes");
 
-router.get("/signedUser", function (req, res) {
-});
+const registerRouters = async () => {
+  await Auth(router);
+  await HostRoutes(router);
 
-module.exports = router;
+  return router;
+};
+
+module.exports = {
+  registerRouters,
+};

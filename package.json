@@ -8,9 +8,11 @@
   "scripts": {
     "start": "node src/app.js",
     "local:build": "node_modules/webpack/bin/webpack.js --config webpack.config.js",
-    "test": "npm run test-unit && npm run test-integration",
+    "test": "yarn run test-unit && yarn run test-integration",
     "test-unit": "NODE_ENV=test node ./node_modules/.bin/mocha tests/unit/*.test.js",
-    "test-integration": "NODE_ENV=test node ./node_modules/.bin/mocha tests/integration/*.test.js"
+    "test-integration": "NODE_ENV=test node ./node_modules/.bin/mocha tests/integration/*.test.js",
+    "migrate": "sequelize db:migrate",
+    "newmigration": "sequelize migration:create --name $1"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
