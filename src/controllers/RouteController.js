@@ -1,6 +1,8 @@
+"use strict";
+
 const Graph = (function (undefined) {
 
-	const extractKeys = function (obj) {
+	const extractKeys = (obj) => {
 		let keys = [], key;
 		for (key in obj) {
 		    Object.prototype.hasOwnProperty.call(obj,key) && keys.push(key);
@@ -8,19 +10,63 @@ const Graph = (function (undefined) {
 		return keys;
 	}
 
-	const sorter = function (a, b) {
-		return parseFloat (a) - parseFloat (b);
+	const sorter = (a, b) => {
+		return parseFloat(a) - parseFloat(b);
 	}
 
-	const findPaths = function (map, start, end, infinity) {
-		infinity = infinity || Infinity;
+	const getRouteName = (a, b) => {
+		return a < b ? a+''+b : b+''+a;
+	}
+
+	const getPaths = (map, nodes) => {
+		const [start, end] = nodes;
+
+		const routes = [];
+
+		const nextPaths = (HEAD, pathMemo, burned) => {
+			if (HEAD === end) {
+				return routes.push(new Array(...pathMemo, HEAD));
+			}
+
+			let newBurned = [];
+			let node, routeName, newPathMemo;
+
+			for (let p in burned) {
+				newBurned[p] = 1;
+			}
+
+			for (node of Object.keys(map[HEAD])) {
+				routeName = getRouteName(HEAD, node);
+				newBurned[routeName] = 1;
+			}
+
+			for (node of Object.keys(map[HEAD])) {
+				routeName = getRouteName(HEAD, node);
+
+				if (!burned[routeName]) {
+					newPathMemo = new Array(...pathMemo, HEAD);
+
+					newPathMemo[0] += map[HEAD][node];
+
+					nextPaths(node, newPathMemo, newBurned);
+				}
+			}
+		};
+
+		nextPaths(start, [0], []);
+
+		return routes;
+	}
+
+	const findPaths = (map, start, end, infinity = Infinity) => {
+		let copy = null;
 
 		let costs = {},
 		    open = {'0': [start]},
 		    predecessors = {},
 		    keys;
 
-		let addToOpen = function (cost, vertex) {
+		let addToOpen = (cost, vertex) => {
 			let key = "" + cost;
 			if (!open[key]) open[key] = [];
 			open[key].push(vertex);
@@ -29,7 +75,7 @@ const Graph = (function (undefined) {
 		costs[start] = 0;
 
 		while (open) {
-			if(!(keys = extractKeys(open)).length) break;
+			if (!(keys = extractKeys(open)).length) break;
 
 			keys.sort(sorter);
 
@@ -54,6 +100,10 @@ const Graph = (function (undefined) {
 					}
 				}
 			}
+
+			if (costs[end] && costs[end] !== copy) {
+				copy = costs[end];
+			}
 		}
 
 		if (costs[end] === undefined) {
@@ -64,7 +114,7 @@ const Graph = (function (undefined) {
 
 	}
 
-	const extractShortest = function (predecessors, end) {
+	const extractShortest = (predecessors, end) => {
 		let nodes = [],
 		    u = end;
 
@@ -77,7 +127,7 @@ const Graph = (function (undefined) {
 		return nodes;
 	}
 
-	const findShortestPath = function (map, nodes) {
+	const findShortestPath = (map, nodes) => {
 		let start = nodes.shift(),
 		    end,
 		    predecessors,
@@ -90,6 +140,7 @@ const Graph = (function (undefined) {
 
 			if (predecessors) {
 				shortest = extractShortest(predecessors, end);
+
 				if (nodes.length) {
 					path.push.apply(path, shortest.slice(0, -1));
 				} else {
@@ -103,7 +154,7 @@ const Graph = (function (undefined) {
 		}
 	}
 
-	const toArray = function (list, offset) {
+	const toArray = (list, offset) => {
 		try {
 			return Array.prototype.slice.call(list, offset);
 		} catch (e) {
@@ -119,6 +170,26 @@ const Graph = (function (undefined) {
 		this.map = map;
 	}
 
+	Graph.prototype.getPaths = function (start, end) {
+		if (Object.prototype.toString.call(start) === '[object Array]') {
+			return getPaths(this.map, start);
+		} else if (arguments.length === 2) {
+			return getPaths(this.map, [start, end]);
+		} else {
+			return getPaths(this.map, toArray(arguments));
+		}
+	};
+
+	Graph.getPaths = function (map, start, end) {
+		if (Object.prototype.toString.call(start) === '[object Array]') {
+			return getPaths(map, start);
+		} else if (arguments.length === 3) {
+			return getPaths(map, [start, end]);
+		} else {
+			return getPaths(map, toArray(arguments, 1));
+		}
+	}
+
 	Graph.prototype.findShortestPath = function (start, end) {
 		if (Object.prototype.toString.call(start) === '[object Array]') {
 			return findShortestPath(this.map, start);
@@ -127,7 +198,7 @@ const Graph = (function (undefined) {
 		} else {
 			return findShortestPath(this.map, toArray(arguments));
 		}
-	}
+	};
 
 	Graph.findShortestPath = function (map, start, end) {
 		if (Object.prototype.toString.call(start) === '[object Array]') {
@@ -137,16 +208,18 @@ const Graph = (function (undefined) {
 		} else {
 			return findShortestPath(map, toArray(arguments, 1));
 		}
-	}
+	};
 
 	return Graph;
 
 })();
 
-function find_route (req, res) {
+function FindRoute (req, res) {
+	const {from_x, from_y, to_x, to_y, filter} = req.params;
+
 	
 }
 
 module.exports = {
-	find_route
-}
+	FindRoute
+};
