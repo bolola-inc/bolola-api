@@ -18,9 +18,27 @@ const Graph = (function (undefined) {
 		return a < b ? a+''+b : b+''+a;
 	}
 
-	const getPaths = (map, nodes) => {
-		const [start, end] = nodes;
+	const routeSorter = (routes) => {
+		if (routes.length <= 1) {
+			return routes;
+		}
 
+		const supportElement = routes[0],
+			  smallerElements = [],
+			  biggerElements = [];
+
+		for (let i = 1; i < routes.length; i++) {
+			if (routes[i][0] <= supportElement[0]) {
+				smallerElements.push(routes[i]);
+			} else {
+				biggerElements.push(routes[i]);
+			}
+		}
+
+		return routeSorter(smallerElements).concat([supportElement]).concat(routeSorter(biggerElements));
+	}
+
+	const getAllPaths = (map, start, end) => {
 		const routes = [];
 
 		const nextPaths = (HEAD, pathMemo, burned) => {
@@ -56,6 +74,15 @@ const Graph = (function (undefined) {
 		nextPaths(start, [0], []);
 
 		return routes;
+	}
+
+	const getPaths = (map, nodes, n) => {
+		const [start, end] = nodes;
+
+		let paths = getAllPaths(map, start, end);
+		paths = routeSorter(paths);
+
+		return n ? paths.slice(0, n) : paths;
 	}
 
 	const findPaths = (map, start, end, infinity = Infinity) => {
@@ -170,23 +197,23 @@ const Graph = (function (undefined) {
 		this.map = map;
 	}
 
-	Graph.prototype.getPaths = function (start, end) {
+	Graph.prototype.getPaths = function (start, end, n) {
 		if (Object.prototype.toString.call(start) === '[object Array]') {
-			return getPaths(this.map, start);
-		} else if (arguments.length === 2) {
-			return getPaths(this.map, [start, end]);
+			return getPaths(this.map, start, end);
+		} else if (arguments.length === 3) {
+			return getPaths(this.map, [start, end], n);
 		} else {
-			return getPaths(this.map, toArray(arguments));
+			return getPaths(this.map, toArray(arguments), n);
 		}
 	};
 
-	Graph.getPaths = function (map, start, end) {
+	Graph.getPaths = function (map, start, end, n) {
 		if (Object.prototype.toString.call(start) === '[object Array]') {
-			return getPaths(map, start);
-		} else if (arguments.length === 3) {
-			return getPaths(map, [start, end]);
+			return getPaths(map, start, end);
+		} else if (arguments.length === 4) {
+			return getPaths(map, [start, end], n);
 		} else {
-			return getPaths(map, toArray(arguments, 1));
+			return getPaths(map, toArray(arguments, 1), n);
 		}
 	}
 
