@@ -4,16 +4,16 @@ module.exports = {
     return queryInterface.createTable("UsersSearches", {
       userId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       stationFromId: {
         unique: true,
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       stationToId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       deletedAt: {
         allowNull: false,

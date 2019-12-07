@@ -5,14 +5,14 @@ module.exports = {
     return queryInterface.createTable("RouteStations", {
       routeId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       stationId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       order: {
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       price: {
         type: Sequelize.FLOAT

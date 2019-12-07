@@ -14,10 +14,6 @@ const Graph = (function (undefined) {
 		return parseFloat(a) - parseFloat(b);
 	}
 
-	const getRouteName = (a, b) => {
-		return a < b ? a+''+b : b+''+a;
-	}
-
 	const routeSorter = (routes) => {
 		if (routes.length <= 1) {
 			return routes;
@@ -38,6 +34,10 @@ const Graph = (function (undefined) {
 		return routeSorter(smallerElements).concat([supportElement]).concat(routeSorter(biggerElements));
 	}
 
+	const getRouteName = (a, b) => {
+		return a < b ? a+''+b : b+''+a;
+	}
+
 	const getAllPaths = (map, start, end) => {
 		const routes = [];
 
@@ -46,19 +46,20 @@ const Graph = (function (undefined) {
 				return routes.push(new Array(...pathMemo, HEAD));
 			}
 
-			let newBurned = [];
-			let node, routeName, newPathMemo;
+			const keys = Object.keys(map[HEAD]);
+			const newBurned = [];
+			let node, p, routeName, newPathMemo;
 
-			for (let p in burned) {
+			for (p in burned) {
 				newBurned[p] = 1;
 			}
 
-			for (node of Object.keys(map[HEAD])) {
+			for (node of keys) {
 				routeName = getRouteName(HEAD, node);
 				newBurned[routeName] = 1;
 			}
 
-			for (node of Object.keys(map[HEAD])) {
+			for (node of keys) {
 				routeName = getRouteName(HEAD, node);
 
 				if (!burned[routeName]) {
@@ -85,7 +86,9 @@ const Graph = (function (undefined) {
 		return n ? paths.slice(0, n) : paths;
 	}
 
-	const findPaths = (map, start, end, infinity = Infinity) => {
+	const findPaths = (map, nodes, infinity = Infinity) => {
+		const [start, end] = nodes;
+
 		let copy = null;
 
 		let costs = {},
@@ -241,12 +244,104 @@ const Graph = (function (undefined) {
 
 })();
 
-function FindRoute (req, res) {
-	const {from_x, from_y, to_x, to_y, filter} = req.params;
+const { sequelize } = require('../models/index');
+const Stations = sequelize.import('../models/Stations.js');
 
-	
+// Filling stations table
+(async function() {
+	const rand = (min, max) => Math.floor(Math.random() * (max-min)) + min;
+
+	const n = 10;
+
+	Stations.destroy({ where: {}, truncate: true });
+
+	for (let i = 1; i <= n; i++) {
+		try {
+			await Stations.create({
+				id: i,
+				long: rand(2,15),
+				lat: rand(2,15),
+				createdAt: '2000-11-11', 
+				updatedAt: '2000-11-11', 
+				deletedAt: '2000-11-11'
+			});
+		}
+		catch (e) { /* ignore... */ }
+	}
+})();
+
+const distance = (x1, y1, x2, y2) => {
+	return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
+}
+
+const generateMap = async (from, to, filter) => {
+	// for time only (yet)
+	const speed = 0.1;
+	const map = {
+		s: {}, // start
+		e: {}  // end
+	};
+
+	const stations = await Stations.findAll({ attributes: ['id', 'long', 'lat'] });
+
+	for (let station1 of stations) {
+		let data1 = station1.dataValues;
+		map[data1.id] = {};
+
+		for (let station2 of stations) {
+			let data2 = station2.dataValues;
+
+			if (data2.id !== data1.id) {
+				let d = distance(+data1.long, +data1.lat, +data2.long, +data2.lat);
+				let t = d / speed;
+
+				map[data1.id][data2.id] = t;
+			}
+		}
+	}
+
+	for (let station of stations) {
+		let data = station.dataValues;
+
+		let t1 = distance(+from[0], +from[1], +data.long, +data.lat) / speed;
+		let t2 = distance(+to[0], +to[1], +data.long, +data.lat) / speed;
+
+		map['s'][data.id] = t1;
+		map[data.id]['s'] = t1;
+
+		map['e'][data.id] = t2;
+		map[data.id]['e'] = t2;
+	}
+
+	return map;
+}
+
+
+async function FindRoute (req, res) {
+	const {from_x, from_y, to_x, to_y, filter, n} = req.query;
+
+	const map = await generateMap([from_x, from_y], [to_x, to_y], filter);
+	const graph = new Graph(map);
+
+	console.time('routes');
+	const routes = graph.getPaths('s', 'e', n);
+	console.timeEnd('routes');
+
+	let output = ``;
+	const decimalPlace = 1e2;
+
+	for (let i in routes) {
+		let route = routes[i];
+
+		let p = Math.floor(route.shift() * decimalPlace) / decimalPlace;
+		let r = route.join(' -> ');
+
+		output += (+i+1) + ') ' + r + ' ' + p + '\n\n'; 
+	}
+
+	res.end(output);
 }
 
 module.exports = {
-	FindRoute
+	FindRoute,
 };

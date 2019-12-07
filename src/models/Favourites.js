@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
   return sequelize.define("Favourites", {
     userSearchesId: {
       allowNull: false,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     deletedAt: {
       allowNull: false,

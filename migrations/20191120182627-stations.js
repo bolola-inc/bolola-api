@@ -7,7 +7,7 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       long: {
         allowNull: false,
@@ -18,7 +18,7 @@ module.exports = {
         type: Sequelize.FLOAT
       },
       hostId: {
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       deletedAt: {
         allowNull: false,

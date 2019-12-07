@@ -6,11 +6,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     placeNamesId: {
       allowNull: true,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     deletedAt: {
       allowNull: false,
