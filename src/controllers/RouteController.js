@@ -1,5 +1,23 @@
 "use strict";
 
+const utils = require('../utils/index');
+const { sequelize } = require('../models/index');
+const Stations = sequelize.import('../models/Stations.js');
+
+/**
+ * Component for solving k shortest paths problem.
+ * 
+ * Graph class component uses Yen's Algorithm to find the k shortest paths and returns paths and the cost of each path.
+ * 
+ * @since 0.0.1
+ * @access private
+ * 
+ * @class
+ * 
+ * @param {Object} map Graph structure that represents relations between nodes and their cost.
+ * 
+ * @return {Class} Graph class.
+ */
 const Graph = (function (undefined) {
 
 	const extractKeys = (obj) => {
@@ -86,9 +104,7 @@ const Graph = (function (undefined) {
 		return n ? paths.slice(0, n) : paths;
 	}
 
-	const findPaths = (map, nodes, infinity = Infinity) => {
-		const [start, end] = nodes;
-
+	const findPaths = (map, start, end, infinity = Infinity) => {
 		let copy = null;
 
 		let costs = {},
@@ -139,6 +155,7 @@ const Graph = (function (undefined) {
 		if (costs[end] === undefined) {
 			return null;
 		} else {
+			predecessors['cost'] = costs[end];
 			return predecessors;
 		}
 
@@ -154,6 +171,7 @@ const Graph = (function (undefined) {
 		}
 
 		nodes.reverse();
+		nodes.unshift(predecessors.cost);
 		return nodes;
 	}
 
@@ -196,8 +214,80 @@ const Graph = (function (undefined) {
 		}
 	}
 
+	const isUnique = (path, paths) => {
+		const s = path.join(``);
+
+		for (let p of paths) {
+			if (s === p.join(``))
+				return false;
+		}
+
+		return true;
+	}
+
+	const kShortestPaths = (map, nodes, k, infinity = Infinity) => {
+		
+		const [start, end] = nodes;
+
+		const paths = [];
+		paths[0] = findShortestPath(map, [start, end]);
+
+		let heap = [];
+
+		for (let n = 1; n < k; n++) {
+			const p = paths[0];
+
+			for (let i = 1; i < p.length - 1; i++) {
+				const _map = utils.cloneObject(map);
+
+				for (let path of paths) {
+					for (let d = 1; d < path.length - 1; d++) {
+						if (path[d] === p[i]) {
+							_map[path[d]][path[d+1]] = infinity;
+							_map[path[d+1]][path[d]] = infinity;
+						}
+					}
+				}
+
+				const _p = findShortestPath(_map, [start, end]);
+				if (isUnique(_p, paths)) {
+					heap.push(_p);
+				}
+
+			}
+
+			heap = routeSorter(heap);
+			paths.unshift(heap[0]);
+
+			heap = [];
+		}
+
+		return paths.reverse();
+
+	}
+
 	let Graph = function (map) {
 		this.map = map;
+	}
+
+	Graph.prototype.kShortestPaths = function (start, end, n) {
+		if (Object.prototype.toString.call(start) === '[object Array]') {
+			return kShortestPaths(this.map, start, end);
+		} else if (arguments.length === 3) {
+			return kShortestPaths(this.map, [start, end], n);
+		} else {
+			return kShortestPaths(this.map, toArray(arguments), n);
+		}
+	};
+
+	Graph.kShortestPaths = function (map, start, end, n) {
+		if (Object.prototype.toString.call(start) === '[object Array]') {
+			return kShortestPaths(map, start, end);
+		} else if (arguments.length === 4) {
+			return kShortestPaths(map, [start, end], n);
+		} else {
+			return kShortestPaths(map, toArray(arguments, 1), n);
+		}
 	}
 
 	Graph.prototype.getPaths = function (start, end, n) {
@@ -244,14 +334,11 @@ const Graph = (function (undefined) {
 
 })();
 
-const { sequelize } = require('../models/index');
-const Stations = sequelize.import('../models/Stations.js');
-
 // Filling stations table
 (async function() {
 	const rand = (min, max) => Math.floor(Math.random() * (max-min)) + min;
 
-	const n = 10;
+	const n = 100;
 
 	Stations.destroy({ where: {}, truncate: true });
 
@@ -324,7 +411,7 @@ async function FindRoute (req, res) {
 	const graph = new Graph(map);
 
 	console.time('routes');
-	const routes = graph.getPaths('s', 'e', n);
+	const routes = graph.kShortestPaths('s', 'e', n);
 	console.timeEnd('routes');
 
 	let output = ``;
