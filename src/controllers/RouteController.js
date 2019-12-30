@@ -7,7 +7,7 @@ const Stations = sequelize.import('../models/Stations.js');
 /**
  * Component for solving k shortest paths problem.
  * 
- * Graph class component uses Yen's Algorithm to find the k shortest paths and returns paths and the cost of each path.
+ * Graph class component uses Yen's Algorithm (uses Dijkstra's Algorithm) to find the k shortest paths and returns paths and the cost of each path.
  * 
  * @since 0.0.1
  * @access private
