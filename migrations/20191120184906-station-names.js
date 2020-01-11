@@ -7,11 +7,11 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INT
+        type: Sequelize.INTAGER
       },
       placeNamesId: {
         allowNull: true,
-        type: Sequelize.INT
+        type: Sequelize.INTAGER
       },
       deletedAt: {
         allowNull: false,

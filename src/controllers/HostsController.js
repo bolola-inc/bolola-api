@@ -16,6 +16,10 @@ function GetHosts () {
 
 }
 
+function GetHostById () {
+
+}
+
 function DeleteHost () {
 
 }
@@ -24,5 +28,6 @@ module.exports = {
   CreateHost,
   UpdateHost,
   GetHosts,
+  GetHostById,
   DeleteHost
 };

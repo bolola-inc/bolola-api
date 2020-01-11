@@ -7,11 +7,11 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INT
+        type: Sequelize.INTAGER
       },
       countriesId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTAGER
       },
       city: {
         allowNull: false,
@@ -38,7 +38,7 @@ module.exports = {
         type: Sequelize.STRING(60)
       },
       deletedAt: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.DATE
       },
       createdAt: {
@@ -46,7 +46,7 @@ module.exports = {
         type: Sequelize.DATE
       },
       updatedAt: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.DATE
       },
     });

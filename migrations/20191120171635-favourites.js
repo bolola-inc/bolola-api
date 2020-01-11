@@ -5,7 +5,7 @@ module.exports = {
     return queryInterface.createTable("Favourites", {
       userSearchesId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTAGER
       },
       deletedAt: {
         allowNull: false,

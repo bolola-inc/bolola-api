@@ -7,18 +7,20 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INT
+        type: Sequelize.INTAGER
       },
       name: {
         allowNull: false,
-        type: Sequelize.STRING(45)
+        type: Sequelize.STRING,
       },
       type: {
         allowNull: false,
-        type: Sequelize.STRING(45)
+        type: Sequelize.ENUM({
+          values: ['buss', 'min_bass', 'trolleybus'],
+        })
       },
       deletedAt: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.DATE
       },
       createdAt: {
