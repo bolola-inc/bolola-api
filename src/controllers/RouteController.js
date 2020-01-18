@@ -6,16 +6,16 @@ const Stations = sequelize.import('../models/Stations.js');
 
 /**
  * Component for solving k shortest paths problem.
- * 
+ *
  * Graph class component uses Yen's Algorithm (uses Dijkstra's Algorithm) to find the k shortest paths and returns paths and the cost of each path.
- * 
+ *
  * @since 0.0.1
  * @access private
- * 
+ *
  * @class
- * 
+ *
  * @param {Object} map Graph structure that represents relations between nodes and their cost.
- * 
+ *
  * @return {Class} Graph class.
  */
 const Graph = (function (undefined) {
@@ -226,7 +226,7 @@ const Graph = (function (undefined) {
 	}
 
 	const kShortestPaths = (map, nodes, k, infinity = Infinity) => {
-		
+
 		const [start, end] = nodes;
 
 		const paths = [];
@@ -335,7 +335,7 @@ const Graph = (function (undefined) {
 })();
 
 // Filling stations table
-(async function() {
+async function mockData() {
 	const rand = (min, max) => Math.floor(Math.random() * (max-min)) + min;
 
 	const n = 100;
@@ -348,14 +348,14 @@ const Graph = (function (undefined) {
 				id: i,
 				long: rand(2,15),
 				lat: rand(2,15),
-				createdAt: '2000-11-11', 
-				updatedAt: '2000-11-11', 
+				createdAt: '2000-11-11',
+				updatedAt: '2000-11-11',
 				deletedAt: '2000-11-11'
 			});
 		}
 		catch (e) { /* ignore... */ }
 	}
-})();
+}
 
 const distance = (x1, y1, x2, y2) => {
 	return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
@@ -423,7 +423,7 @@ async function FindRoute (req, res) {
 		let p = Math.floor(route.shift() * decimalPlace) / decimalPlace;
 		let r = route.join(' -> ');
 
-		output += (+i+1) + ') ' + r + ' ' + p + '\n\n'; 
+		output += (+i+1) + ') ' + r + ' ' + p + '\n\n';
 	}
 
 	res.end(output);

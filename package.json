@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "engines": {
-    "node": "10.16.0"
+    "node": "12.14.0"
   },
   "scripts": {
-    "start": "node src/app.js",
+    "start": "node server.js",
     "local:build": "node_modules/webpack/bin/webpack.js --config webpack.config.js",
     "test": "yarn run test-unit && yarn run test-integration",
     "test-unit": "NODE_ENV=test node ./node_modules/.bin/mocha tests/unit/*.test.js",
@@ -18,11 +18,11 @@
     "body-parser": "^1.18.2",
     "cookie-parser": "^1.4.4",
     "dotenv": "^8.1.0",
-    "express": "^4.16.2",
+    "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "pg": "^6.1.0",
     "pug": "^2.0.0-rc.4",
-    "sequelize": "^6.0.0",
+    "sequelize": "^5.21.3",
     "sequelize-cli": "^5.5.1"
   },
   "devDependencies": {
