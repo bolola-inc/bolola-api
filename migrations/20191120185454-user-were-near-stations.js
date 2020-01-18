@@ -5,11 +5,11 @@ module.exports = {
     return queryInterface.createTable("UserWereNearStations", {
       userId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       stationId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       time: {
         allowNull: false,

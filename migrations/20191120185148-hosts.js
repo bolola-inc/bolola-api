@@ -7,11 +7,11 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       countriesId: {
         allowNull: false,
-        type: Sequelize.INT
+        type: Sequelize.INTEGER
       },
       city: {
         allowNull: false,

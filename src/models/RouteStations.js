@@ -4,14 +4,14 @@ module.exports = (sequelize, DataTypes) => {
   return sequelize.define("RouteStations", {
     routeId: {
       allowNull: false,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     stationId: {
       allowNull: false,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     order: {
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     price: {
       type: DataTypes.FLOAT

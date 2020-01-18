@@ -4,16 +4,16 @@ module.exports = (sequelize, DataTypes) => {
   return sequelize.define("UserSearches", {
     userId: {
       allowNull: false,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     stationFromId: {
       unique: true,
       allowNull: false,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     stationToId: {
       allowNull: false,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     deletedAt: {
       allowNull: false,

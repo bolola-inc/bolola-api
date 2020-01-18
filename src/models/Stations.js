@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     long: {
       allowNull: false,
@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT
     },
     hostId: {
-      type: DataTypes.INT
+      type: DataTypes.INTEGER
     },
     deletedAt: {
       allowNull: false,
