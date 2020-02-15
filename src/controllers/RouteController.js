@@ -2,6 +2,7 @@
 
 const utils = require('../utils/index');
 const { sequelize } = require('../models/index');
+const RouteStations = sequelize.import('../models/RouteStations.js');
 const Stations = sequelize.import('../models/Stations.js');
 
 /**
@@ -340,7 +341,8 @@ async function mockData() {
 
 	const n = 100;
 
-	Stations.destroy({ where: {}, truncate: true });
+	await Stations.destroy({ where: {}, truncate: true });
+	await RouteStations.destroy({ where: {}, truncate: true });
 
 	for (let i = 1; i <= n; i++) {
 		try {
@@ -352,8 +354,18 @@ async function mockData() {
 				updatedAt: '2000-11-11',
 				deletedAt: '2000-11-11'
 			});
+
+			await RouteStations.create({
+				routeId: rand(0, 3),
+				stationId: i,
+				price: 100,
+				order: 0,
+				createdAt: '2000-11-11',
+				updatedAt: '2000-11-11',
+				deletedAt: '2000-11-11'
+			});
 		}
-		catch (e) { /* ignore... */ }
+		catch (e) { console.log(e); }
 	}
 }
 
@@ -361,15 +373,12 @@ const distance = (x1, y1, x2, y2) => {
 	return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
 }
 
-const generateMap = async (from, to, filter) => {
-	// for time only (yet)
+const generateTimeMap = (from, to, stations) => {
 	const speed = 0.1;
 	const map = {
 		s: {}, // start
 		e: {}  // end
 	};
-
-	const stations = await Stations.findAll({ attributes: ['id', 'long', 'lat'] });
 
 	for (let station1 of stations) {
 		let data1 = station1.dataValues;
@@ -403,6 +412,176 @@ const generateMap = async (from, to, filter) => {
 	return map;
 }
 
+const generateTransitMap = (stations, route_stations) => {
+	const map = {
+		s: {}, // start
+		e: {}  // end
+	};
+
+	const memo = {};
+
+	for (let route_station of route_stations) {
+		const data = route_station.dataValues;
+
+		if (!memo[data.stationId]) memo[data.stationId] = [];
+
+		memo[data.stationId].push(data.routeId);
+	}
+
+	const haveSameValue = (a, b) => {
+		for (let _a of a) {
+			for (let _b of b) {
+				if (_a === _b) return 1;
+			}
+		}
+
+		return 0;
+	}
+
+	for (let station1 of stations) {
+		let data1 = station1.dataValues;
+		map[data1.id] = {};
+
+		for (let station2 of stations) {
+			let data2 = station2.dataValues;
+
+			if (data2.id !== data1.id) {
+				let t = haveSameValue(
+					memo[data1.id],
+					memo[data2.id]
+				);
+
+				map[data1.id][data2.id] = t;
+			}
+		}
+	}
+
+	for (let station of stations) {
+		let data = station.dataValues;
+
+		map['s'][data.id] = 1;
+		map[data.id]['s'] = 1;
+
+		map['e'][data.id] = 1;
+		map[data.id]['e'] = 1;
+	}
+
+	return map;
+}
+
+const generatePriceMap = (stations, route_stations) => {
+	const map = {
+		s: {}, // start
+		e: {}  // end
+	};
+
+	const memo = {};
+
+	for (let route_station of route_stations) {
+		const data = route_station.dataValues;
+
+		memo[data.stationId] = {routeId: data.routeId, price: data.price};
+	}
+
+	for (let station1 of stations) {
+		let data1 = station1.dataValues;
+		map[data1.id] = {};
+
+		for (let station2 of stations) {
+			let data2 = station2.dataValues;
+
+			if (data2.id !== data1.id) {
+				let t = memo[data1.id].routeId === memo[data2.id].routeId ? 0 : memo[data2.id].price;
+
+				map[data1.id][data2.id] = t;
+			}
+		}
+	}
+
+	for (let station of stations) {
+		let data = station.dataValues;
+
+		map['s'][data.id] = memo[data.id].price;
+		map[data.id]['s'] = 0;
+
+		map['e'][data.id] = memo[data.id].price;
+		map[data.id]['e'] = 0;
+	}
+
+	return map;
+}
+
+const generateWalkingMap = (from, to, stations, route_stations) => {
+	const speed = 0.1;
+	const map = {
+		s: {}, // start
+		e: {}  // end
+	};
+
+	const memo = {};
+
+	for (let route_station of route_stations) {
+		const data = route_station.dataValues;
+
+		memo[data.stationId] = {routeId: data.routeId, price: data.price};
+	}
+
+	for (let station1 of stations) {
+		let data1 = station1.dataValues;
+		map[data1.id] = {};
+
+		for (let station2 of stations) {
+			let data2 = station2.dataValues;
+
+			if (data2.id !== data1.id) {
+				let d = distance(+data1.long, +data1.lat, +data2.long, +data2.lat) / speed;
+				let t = memo[data1.id].routeId === memo[data2.id].routeId ? 0 : d;
+
+				map[data1.id][data2.id] = t;
+			}
+		}
+	}
+
+	for (let station of stations) {
+		let data = station.dataValues;
+
+		let t1 = distance(+from[0], +from[1], +data.long, +data.lat) / speed;
+		let t2 = distance(+to[0], +to[1], +data.long, +data.lat) / speed;
+
+		map['s'][data.id] = t1;
+		map[data.id]['s'] = t1;
+
+		map['e'][data.id] = t2;
+		map[data.id]['e'] = t2;
+	}
+
+	return map;
+}
+
+const generateMap = async (from, to, filter) => {
+	const stations = await Stations.findAll({ attributes: ['id', 'long', 'lat'] });
+	const route_stations = await RouteStations.findAll({ attributes: ['routeId', 'stationId', 'price'] });
+
+	let map;
+
+	switch (filter) {
+		case '0':
+			map = generateTimeMap(from, to, stations)
+			break;
+		case '1':
+			map = generatePriceMap(stations, route_stations)
+			break;
+		case '2':
+			map = generateWalkingMap(from, to, stations, route_stations)
+			break;
+		case '3':
+			map = generateTransitMap(stations, route_stations)
+			break;
+	}
+
+	return map;
+}
+
 
 async function FindRoute (req, res) {
 	const {from_x, from_y, to_x, to_y, filter, n} = req.query;
@@ -410,23 +589,18 @@ async function FindRoute (req, res) {
 	const map = await generateMap([from_x, from_y], [to_x, to_y], filter);
 	const graph = new Graph(map);
 
-	console.time('routes');
-	const routes = graph.kShortestPaths('s', 'e', n);
-	console.timeEnd('routes');
+	let routes = graph.kShortestPaths('s', 'e', n);
 
-	let output = ``;
-	const decimalPlace = 1e2;
+	routes = routes.map(route => {
+		const decimalPlace = 1e2;
+		const p = Math.floor(route.shift() * decimalPlace) / decimalPlace;
 
-	for (let i in routes) {
-		let route = routes[i];
+		return { price: p, route };
+	});
 
-		let p = Math.floor(route.shift() * decimalPlace) / decimalPlace;
-		let r = route.join(' -> ');
+	const output = { routes, filter, n };
 
-		output += (+i+1) + ') ' + r + ' ' + p + '\n\n';
-	}
-
-	res.end(output);
+	res.json(output);
 }
 
 module.exports = {
