@@ -8,13 +8,9 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       type: DataTypes.INTEGER
     },
-    userSearchesId: {
+    userId: {
       allowNull: false,
       type: DataTypes.INTEGER
-    },
-    deletedAt: {
-      allowNull: true,
-      type: DataTypes.DATE
     },
     createdAt: {
       allowNull: false,
