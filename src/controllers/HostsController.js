@@ -2,8 +2,6 @@
  * Users Controller
  */
 
-
-
 function CreateHost () {
 
 }
@@ -25,4 +23,4 @@ module.exports = {
   UpdateHost,
   GetHosts,
   DeleteHost
-};
+}
