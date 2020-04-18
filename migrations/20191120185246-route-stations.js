@@ -2,19 +2,23 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable("Favourites", {
-      id: {
+    return queryInterface.createTable("RouteStations", {
+      routeId: {
         allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
         type: Sequelize.INTEGER
       },
-      userSearchesId: {
+      stationId: {
         allowNull: false,
         type: Sequelize.INTEGER
+      },
+      order: {
+        type: Sequelize.INTEGER
+      },
+      price: {
+        type: Sequelize.FLOAT
       },
       deletedAt: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.DATE
       },
       createdAt: {
@@ -22,12 +26,12 @@ module.exports = {
         type: Sequelize.DATE
       },
       updatedAt: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.DATE
       },
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("Favourites");
+    return queryInterface.dropTable("RouteStations");
   }
 };
