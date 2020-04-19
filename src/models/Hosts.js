@@ -18,34 +18,31 @@ module.exports = (sequelize, DataTypes) => {
     },
     email: {
       allowNull: false,
-      type: DataTypes.STRING(199)
+      type: DataTypes.STRING(199),
+      unique: true
     },
     password: {
       allowNull: false,
       type: DataTypes.STRING(60)
     },
     rememberToken: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.STRING(60)
     },
     confirmedAt: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.DATE
     },
     confirmationCode: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.STRING(60)
-    },
-    deletedAt: {
-      allowNull: false,
-      type: DataTypes.DATE
     },
     createdAt: {
       allowNull: false,
       type: DataTypes.DATE
     },
     updatedAt: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.DATE
     },
   });
