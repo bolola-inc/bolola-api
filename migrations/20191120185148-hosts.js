@@ -19,19 +19,23 @@ module.exports = {
       },
       email: {
         allowNull: false,
-        type: Sequelize.STRING(199)
+        type: Sequelize.STRING(199),
+        unique: true
       },
       password: {
         allowNull: false,
         type: Sequelize.STRING(60)
       },
       rememberToken: {
+        allowNull: true,
         type: Sequelize.STRING(60)
       },
       confirmedAt: {
+        allowNull: true,
         type: Sequelize.DATE
       },
       confirmationCode: {
+        allowNull: true,
         type: Sequelize.STRING(60)
       },
       createdAt: {
