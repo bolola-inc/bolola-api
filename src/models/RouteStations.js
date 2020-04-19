@@ -22,10 +22,6 @@ module.exports = (sequelize, DataTypes) => {
     price: {
       type: DataTypes.FLOAT
     },
-    deletedAt: {
-      allowNull: false,
-      type: DataTypes.DATE
-    },
     createdAt: {
       allowNull: false,
       type: DataTypes.DATE
