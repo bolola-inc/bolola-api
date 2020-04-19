@@ -1,26 +1,45 @@
-/**
- * Users Controller
- */
+const models = require("../models")
 
-function CreateHost () {
+async function CreateHost (req, res) {
+  const host = await models.Hosts.create(req.body)
 
+  res.send(host)
 }
 
-function UpdateHost () {
+async function UpdateHost (req, res) {
+  await models.Hosts.update(req.body, { where: { id: req.params.id } })
+  const host = await models.Hosts.findOne({ where: { id: req.params.id } })
 
+  res.send(host)
 }
 
-function GetHosts () {
+async function GetHosts (req, res) {
+  const hosts = await models.Hosts.findAll()
 
+  res.send(hosts)
 }
 
-function DeleteHost () {
+async function GetHostById (req, res) {
+  const hosts = await models.Hosts.findOne({ where: { id: req.params.id } })
 
+  res.send(hosts)
+}
+
+async function DeleteHost (req, res) {
+
+  await models.Hosts.destroy({
+    where: {
+      id: req.params.id
+    }
+  })
+
+  res.send({ success: true })
 }
 
 module.exports = {
   CreateHost,
   UpdateHost,
   GetHosts,
-  DeleteHost
+  DeleteHost,
+  GetHostById
 }
