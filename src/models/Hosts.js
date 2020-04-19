@@ -25,20 +25,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(60)
     },
     rememberToken: {
-      allowNull: false,
       type: DataTypes.STRING(60)
     },
     confirmedAt: {
-      allowNull: false,
       type: DataTypes.DATE
     },
     confirmationCode: {
-      allowNull: false,
       type: DataTypes.STRING(60)
-    },
-    deletedAt: {
-      allowNull: false,
-      type: DataTypes.DATE
     },
     createdAt: {
       allowNull: false,
