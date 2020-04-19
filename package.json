@@ -2,9 +2,6 @@
   "name": "global-id-nodejs-demo",
   "version": "0.0.1",
   "private": true,
-  "engines": {
-    "node": "12.14.0"
-  },
   "scripts": {
     "start": "node server.js",
     "local:build": "node_modules/webpack/bin/webpack.js --config webpack.config.js",
