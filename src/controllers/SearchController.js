@@ -7,6 +7,9 @@ const models = require('../models');
 
 async function GetSearchHistory(req, res){
     const search = await models.SearchHistory.findAll()
+    where: {
+        userId: req.user.deviceId
+    }
     console.log(search) 
 }
 
@@ -23,6 +26,7 @@ function GetSearchHistory(req, res) {
 
 
 module.exports = {
-    GetSearchHistory
+    GetSearchHistory,
+    CreatSearchHistory
 }
 
