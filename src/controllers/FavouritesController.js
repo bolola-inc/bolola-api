@@ -14,8 +14,14 @@ async function CreateFavourites (req, res) {
   res.send(favourites)
 }
 
-function DeleteFavourites () {
+async function DeleteFavourites (req, res) {
+  await models.Favourites.destroy({
+    where: {
+      id: req.params.id
+    }
+  })
 
+  res.send({ success: true })
 }
 
 module.exports = {
