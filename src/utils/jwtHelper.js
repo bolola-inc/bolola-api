@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken")
+const models = require("../models")
 
 const getJwtToken = (body) => {
   return new Promise((resolve, reject) => {
@@ -12,24 +13,23 @@ const getJwtToken = (body) => {
 
 }
 
-function authenticateToken (req, res, next) {
-  const getTokenHeader = (header) => header.split(' ')[1]
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers.authorization
 
-  const authHeader = req.headers['authorization'] || req.headers['x-access-token']
-  const authToken = authHeader && getTokenHeader(authHeader)
+  if (authHeader) {
+    const token = authHeader.split(' ')[1]
 
-  if (!authToken) {
-    return res.sendStatus(401)
+    jwt.verify(token, process.env.APP_SECRET, async (err, data) => {
+      if (err) {
+        return res.sendStatus(403)
+      }
+      const user = await models.Users.findOne({ where: { deviceId: data.deviceId } })
+      req.user = user.get()
+      next()
+    })
+  } else {
+    res.sendStatus(401)
   }
-
-  jwt.verify(authToken, process.env.APP_SECRET, (err, decode) => {
-    if (err) {
-      return res.sendStatus(403)
-    }
-
-    req.user = decode
-    next()
-  })
 }
 
 module.exports = {
