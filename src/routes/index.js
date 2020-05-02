@@ -6,6 +6,7 @@ const AuthDevice = require("./DeviceAuthRoutes");
 const HostRoutes = require("./HostRoutes");
 const FindRoute = require("./FindRoute");
 const FavouritesRoute = require("./FavouritesRoute")
+const RoutesRoutes = require("./RoutesRoutes")
 
 const registerRouters = async () => {
   await Auth(router);
@@ -13,6 +14,7 @@ const registerRouters = async () => {
   await HostRoutes(router);
   await FindRoute(router);
   await FavouritesRoute(router);
+  await RoutesRoutes(router);
 
   return router;
 };
