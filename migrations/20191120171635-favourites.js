@@ -5,12 +5,12 @@ module.exports = {
     return queryInterface.createTable("Favourites", {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
       userId: {
         allowNull: false,
+        primaryKey: true,
         type: Sequelize.INTEGER
       },
       createdAt: {

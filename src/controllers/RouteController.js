@@ -368,6 +368,7 @@ async function mockData() {
 		catch (e) { console.log(e); }
 	}
 }
+// mockData();
 
 const distance = (x1, y1, x2, y2) => {
 	return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
