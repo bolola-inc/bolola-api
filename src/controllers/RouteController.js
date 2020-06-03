@@ -335,40 +335,6 @@ const Graph = (function (undefined) {
 
 })();
 
-// Filling stations table
-async function mockData() {
-	const rand = (min, max) => Math.floor(Math.random() * (max-min)) + min;
-
-	const n = 100;
-
-	await Stations.destroy({ where: {}, truncate: true });
-	await RouteStations.destroy({ where: {}, truncate: true });
-
-	for (let i = 1; i <= n; i++) {
-		try {
-			await Stations.create({
-				id: i,
-				long: rand(2,15),
-				lat: rand(2,15),
-				createdAt: '2000-11-11',
-				updatedAt: '2000-11-11',
-				deletedAt: '2000-11-11'
-			});
-
-			await RouteStations.create({
-				routeId: rand(0, 3),
-				stationId: i,
-				price: 100,
-				order: 0,
-				createdAt: '2000-11-11',
-				updatedAt: '2000-11-11',
-				deletedAt: '2000-11-11'
-			});
-		}
-		catch (e) { console.log(e); }
-	}
-}
-
 const distance = (x1, y1, x2, y2) => {
 	return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
 }
