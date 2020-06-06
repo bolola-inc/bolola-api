@@ -6,6 +6,7 @@ async function AuthDevice (req, res) {
   const { deviceId } = req.body
 
   const user = await models.Users.findOne({ where: { deviceId } })
+  console.log(user);
 
   if (!user) {
     await models.Users.create({

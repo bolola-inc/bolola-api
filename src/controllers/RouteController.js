@@ -5,6 +5,13 @@ const { sequelize } = require('../models/index');
 const RouteStations = sequelize.import('../models/RouteStations.js');
 const Stations = sequelize.import('../models/Stations.js');
 
+const FILTER = {
+	   TIME: '0',
+	  PRICE: '1',
+	   WALK: '2',
+	TRANSIT: '3'
+};
+
 /**
  * Component for solving k shortest paths problem.
  *
@@ -335,39 +342,6 @@ const Graph = (function (undefined) {
 
 })();
 
-// Filling stations table
-async function mockData() {
-	const rand = (min, max) => Math.floor(Math.random() * (max-min)) + min;
-
-	const n = 100;
-
-	await Stations.destroy({ where: {}, truncate: true });
-	await RouteStations.destroy({ where: {}, truncate: true });
-
-	for (let i = 1; i <= n; i++) {
-		try {
-			await Stations.create({
-				id: i,
-				long: rand(2,15),
-				lat: rand(2,15),
-				createdAt: '2000-11-11',
-				updatedAt: '2000-11-11',
-				deletedAt: '2000-11-11'
-			});
-
-			await RouteStations.create({
-				routeId: rand(0, 3),
-				stationId: i,
-				price: 100,
-				order: 0,
-				createdAt: '2000-11-11',
-				updatedAt: '2000-11-11',
-				deletedAt: '2000-11-11'
-			});
-		}
-		catch (e) { console.log(e); }
-	}
-}
 
 const distance = (x1, y1, x2, y2) => {
 	return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
@@ -565,16 +539,16 @@ const generateMap = async (from, to, filter) => {
 	let map;
 
 	switch (filter) {
-		case '0':
+		case FILTER.TIME:
 			map = generateTimeMap(from, to, stations)
 			break;
-		case '1':
+		case FILTER.PRICE:
 			map = generatePriceMap(stations, route_stations)
 			break;
-		case '2':
+		case FILTER.WALK:
 			map = generateWalkingMap(from, to, stations, route_stations)
 			break;
-		case '3':
+		case FILTER.TRANSIT:
 			map = generateTransitMap(stations, route_stations)
 			break;
 	}
@@ -593,7 +567,8 @@ async function FindRoute (req, res) {
 
 	routes = routes.map(route => {
 		const decimalPlace = 1e2;
-		const p = Math.floor(route.shift() * decimalPlace) / decimalPlace;
+		let p = Math.floor(route.shift() * decimalPlace) / decimalPlace;
+		if (filter === FILTER.TRANSIT) p--;
 
 		return { price: p, route };
 	});

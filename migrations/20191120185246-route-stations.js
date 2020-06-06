@@ -3,6 +3,12 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable("RouteStations", {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
       routeId: {
         allowNull: false,
         type: Sequelize.INTEGER
@@ -25,6 +31,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
+      deletedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+      }
     });
   },
   down: (queryInterface, Sequelize) => {
