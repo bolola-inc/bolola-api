@@ -1,5 +1,14 @@
 const models = require("../models")
 
+async function GetRoutes (req, res) {
+  const routes = await models.Routes.findAll({
+    where: {
+      userId: req.user.id
+    }
+  })
+  res.send(routes)
+}
+
 async function CreateRoutes (req, res) {
   const routes = await models.Routes.create({ ...req.body, id: req.params.id, createdAt: Date().toISOString() })
   res.send(routes)
@@ -12,7 +21,19 @@ async function UpdateRoutes (req, res) {
   res.send(routes)
 }
 
+async function DeleteRoutes (req, res) {
+    await models.Routes.destroy({
+      where: {
+        id: req.params.id
+      }
+    })
+  
+    res.send({ success: true })
+  }
+
 module.exports = {
+  GetRoutes,
   CreateRoutes,
-  UpdateRoutes
+  UpdateRoutes,
+  DeleteRoutes
 }
