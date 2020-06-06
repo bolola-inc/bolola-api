@@ -5,6 +5,13 @@ const { sequelize } = require('../models/index');
 const RouteStations = sequelize.import('../models/RouteStations.js');
 const Stations = sequelize.import('../models/Stations.js');
 
+const FILTER = {
+	   TIME: '0',
+	  PRICE: '1',
+	   WALK: '2',
+	TRANSIT: '3'
+};
+
 /**
  * Component for solving k shortest paths problem.
  *
@@ -532,16 +539,16 @@ const generateMap = async (from, to, filter) => {
 	let map;
 
 	switch (filter) {
-		case '0':
+		case FILTER.TIME:
 			map = generateTimeMap(from, to, stations)
 			break;
-		case '1':
+		case FILTER.PRICE:
 			map = generatePriceMap(stations, route_stations)
 			break;
-		case '2':
+		case FILTER.WALK:
 			map = generateWalkingMap(from, to, stations, route_stations)
 			break;
-		case '3':
+		case FILTER.TRANSIT:
 			map = generateTransitMap(stations, route_stations)
 			break;
 	}
@@ -560,7 +567,8 @@ async function FindRoute (req, res) {
 
 	routes = routes.map(route => {
 		const decimalPlace = 1e2;
-		const p = Math.floor(route.shift() * decimalPlace) / decimalPlace;
+		let p = Math.floor(route.shift() * decimalPlace) / decimalPlace;
+		if (filter === FILTER.TRANSIT) p--;
 
 		return { price: p, route };
 	});

@@ -1,6 +1,7 @@
 "use strict"
 
-require('./utils/mockData');
+// Filling Database
+// require('./utils/mockData');
 
 const express = require("express")
 const cookieParser = require("cookie-parser")
