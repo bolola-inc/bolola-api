@@ -1,5 +1,6 @@
 "use strict";
 
+const fetch = require('node-fetch');
 const utils = require('../utils/index');
 const { sequelize } = require('../models/index');
 const RouteStations = sequelize.import('../models/RouteStations.js');
@@ -344,11 +345,47 @@ const Graph = (function (undefined) {
 
 
 const distance = (x1, y1, x2, y2) => {
-	return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
+	// Haversine Formula
+	const R = 6371e3; // metres
+	const φ1 = y1 * Math.PI/180; // φ, λ in radians
+	const φ2 = y2 * Math.PI/180;
+	const Δφ = (y2-y1) * Math.PI/180;
+	const Δλ = (x2-x1) * Math.PI/180;
+
+	const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+		Math.cos(φ1) * Math.cos(φ2) *
+		Math.sin(Δλ/2) * Math.sin(Δλ/2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+	const d = R * c; // in metres
+
+	return d;
 }
 
-const generateTimeMap = (from, to, stations) => {
-	const speed = 0.1;
+const time = async (x1, y1, x2, y2, type) => {
+	const AVERAGE_SPEED = 5.8774083333; // m/s
+
+	const hostname = 'https://maps.googleapis.com/maps/api/distancematrix';
+	const output_format = 'json';
+	const parameters = `origins=${y1},${x1}&destinations=${y2},${x2}&mode=${type === FILTER.WALK ? "walking" : "transit"}&${type!==FILTER.WALK?'transit_mode=bus&':''}departure_time=now&language=en&units=metric&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+
+	const url = `${hostname}/${output_format}?${parameters}`;
+	const json = await fetch(url).then(res => res.json());
+	const response = json.rows[0].elements[0];
+
+	let t;
+	if (response['status'] === "OK") {
+		console.log("STATUS: OK");
+		t = response.duration.value / 60;
+	} else {
+		console.log("STATUS: NO ROUTES");
+		t = distance(x1, y1, x2, y2) / AVERAGE_SPEED / 60;
+	}
+
+	return t;
+}
+
+const generateTimeMap = async (from, to, stations) => {
 	const map = {
 		s: {}, // start
 		e: {}  // end
@@ -362,8 +399,7 @@ const generateTimeMap = (from, to, stations) => {
 			let data2 = station2.dataValues;
 
 			if (data2.id !== data1.id) {
-				let d = distance(+data1.long, +data1.lat, +data2.long, +data2.lat);
-				let t = d / speed;
+				let t = await time(+data1.long, +data1.lat, +data2.long, +data2.lat, FILTER.TRANSIT);
 
 				map[data1.id][data2.id] = t;
 			}
@@ -373,8 +409,8 @@ const generateTimeMap = (from, to, stations) => {
 	for (let station of stations) {
 		let data = station.dataValues;
 
-		let t1 = distance(+from[0], +from[1], +data.long, +data.lat) / speed;
-		let t2 = distance(+to[0], +to[1], +data.long, +data.lat) / speed;
+		let t1 = await time(+from[0], +from[1], +data.long, +data.lat, FILTER.WALK);
+		let t2 = await time(+to[0], +to[1], +data.long, +data.lat, FILTER.WALK);
 
 		map['s'][data.id] = t1;
 		map[data.id]['s'] = t1;
@@ -485,7 +521,7 @@ const generatePriceMap = (stations, route_stations) => {
 	return map;
 }
 
-const generateWalkingMap = (from, to, stations, route_stations) => {
+const generateWalkingMap = async (from, to, stations, route_stations) => {
 	const speed = 0.1;
 	const map = {
 		s: {}, // start
@@ -508,7 +544,7 @@ const generateWalkingMap = (from, to, stations, route_stations) => {
 			let data2 = station2.dataValues;
 
 			if (data2.id !== data1.id) {
-				let d = distance(+data1.long, +data1.lat, +data2.long, +data2.lat) / speed;
+				let d = await time(+data1.long, +data1.lat, +data2.long, +data2.lat);
 				let t = memo[data1.id].routeId === memo[data2.id].routeId ? 0 : d;
 
 				map[data1.id][data2.id] = t;
@@ -519,8 +555,8 @@ const generateWalkingMap = (from, to, stations, route_stations) => {
 	for (let station of stations) {
 		let data = station.dataValues;
 
-		let t1 = distance(+from[0], +from[1], +data.long, +data.lat) / speed;
-		let t2 = distance(+to[0], +to[1], +data.long, +data.lat) / speed;
+		let t1 = await time(+from[0], +from[1], +data.long, +data.lat);
+		let t2 = await time(+to[0], +to[1], +data.long, +data.lat);
 
 		map['s'][data.id] = t1;
 		map[data.id]['s'] = t1;
