@@ -6,6 +6,7 @@ const PlaceNames = sequelize.import('../models/PlaceNames');
 async function GetStation(req, res) {
     const { stations } = req.query;
     const stationIDs = stations.split(',');
+    console.log("STATION IDs: ", stationIDs);
 
     const output = [];
 

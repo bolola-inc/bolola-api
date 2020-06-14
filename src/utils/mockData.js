@@ -4,7 +4,7 @@ const Stations = sequelize.import('../models/Stations.js');
 const StationNames = sequelize.import('../models/StationNames.js');
 const PlaceNames = sequelize.import('../models/PlaceNames.js');
 
-const n = 15; // Number of Stations
+const n = 4; // Number of Stations
 const MOCK_DATE = {
     createdAt: '2000-11-11',
     updatedAt: '2001-11-11',
@@ -12,6 +12,7 @@ const MOCK_DATE = {
 };
 
 const rand = (min, max) => Math.floor(Math.random() * (max-min)) + min;
+const randf = (min, max) => Math.random() * (max-min) + min;
 const randString = (len) => Buffer(len).map(e => rand(97, 123)) + '';
 
 async function mockStations() {
@@ -22,8 +23,8 @@ async function mockStations() {
         try {
             await Stations.create({
                 id: i,
-                long: rand(2,15),
-                lat: rand(2,15),
+                long: randf(44,45),
+                lat: randf(40,41),
                 ...MOCK_DATE
             });
 
