@@ -1,17 +1,27 @@
 "use strict";
 
+const fs = require('fs');
 const fetch = require('node-fetch');
 const utils = require('../utils/index');
 const { sequelize } = require('../models/index');
 const RouteStations = sequelize.import('../models/RouteStations.js');
 const Stations = sequelize.import('../models/Stations.js');
 
+let MAP = {};
+
 const FILTER = {
 	   TIME: '0',
 	  PRICE: '1',
 	   WALK: '2',
-	TRANSIT: '3'
+	TRANSIT: '3',
+	  DRIVE: '4',
+	BICYCLE: '5',
 };
+
+const MAX_WALK_DISTANCE = 800; // in meters
+const AVERAGE_BUS_SPEED = 5.8774083333; // meters per second
+const AVERAGE_WALK_SPEED = 1.3652778; // meters per second
+const AVERAGE_BICYCLE_SPEED = 2.9704; // meters per second
 
 /**
  * Component for solving k shortest paths problem.
@@ -363,11 +373,35 @@ const distance = (x1, y1, x2, y2) => {
 }
 
 const time = async (x1, y1, x2, y2, type) => {
-	const AVERAGE_SPEED = 5.8774083333; // m/s
+	const d = distance(x1, y1, x2, y2);
+	if (type === FILTER.WALK && d > MAX_WALK_DISTANCE) {
+		console.log('LONG WALKING DISTANCE');
+		return d / AVERAGE_WALK_SPEED / 60;
+	}
 
 	const hostname = 'https://maps.googleapis.com/maps/api/distancematrix';
 	const output_format = 'json';
-	const parameters = `origins=${y1},${x1}&destinations=${y2},${x2}&mode=${type === FILTER.WALK ? "walking" : "transit"}&${type!==FILTER.WALK?'transit_mode=bus&':''}departure_time=now&language=en&units=metric&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+
+	let mode;
+	switch (type) {
+		case FILTER.WALK:
+			mode = "walking";
+			break;
+		case FILTER.TRANSIT:
+			mode = "transit";
+			break;
+		case FILTER.DRIVE:
+			mode = "driving";
+			break;
+		case FILTER.BICYCLE:
+			mode = "bicycling";
+			break;
+		default:
+			mode = "transit";
+			break;
+	}
+
+	const parameters = `origins=${y1},${x1}&destinations=${y2},${x2}&mode=${mode}&${type===FILTER.TRANSIT?'transit_mode=bus&':''}departure_time=now&language=en&units=metric&key=${process.env.GOOGLE_MAPS_API_KEY}`;
 
 	const url = `${hostname}/${output_format}?${parameters}`;
 	const json = await fetch(url).then(res => res.json());
@@ -375,11 +409,11 @@ const time = async (x1, y1, x2, y2, type) => {
 
 	let t;
 	if (response['status'] === "OK") {
-		console.log("STATUS: OK");
+		console.log("STATUS: OK", response);
 		t = response.duration.value / 60;
 	} else {
 		console.log("STATUS: NO ROUTES");
-		t = distance(x1, y1, x2, y2) / AVERAGE_SPEED / 60;
+		t = distance(x1, y1, x2, y2) / AVERAGE_BUS_SPEED / 60;
 	}
 
 	return t;
@@ -399,18 +433,31 @@ const generateTimeMap = async (from, to, stations) => {
 			let data2 = station2.dataValues;
 
 			if (data2.id !== data1.id) {
-				let t = await time(+data1.long, +data1.lat, +data2.long, +data2.lat, FILTER.TRANSIT);
+				let t;
+				if (MAP.time[data1.id]) {
+					if (MAP.time[data1.id][data2.id]) {
+						t = MAP.time[data1.id][data2.id];
+						console.log("FOUND!");
+					} else {
+						t = await time(+data1.long, +data1.lat, +data2.long, +data2.lat, FILTER.TRANSIT);
+					}
+				} else {
+					t = await time(+data1.long, +data1.lat, +data2.long, +data2.lat, FILTER.TRANSIT);
+				}
 
 				map[data1.id][data2.id] = t;
 			}
 		}
 	}
 
+	MAP.time = map;
+	fs.writeFileSync("./MAP.json", JSON.stringify(MAP));
+
 	for (let station of stations) {
 		let data = station.dataValues;
 
-		let t1 = await time(+from[0], +from[1], +data.long, +data.lat, FILTER.WALK);
-		let t2 = await time(+to[0], +to[1], +data.long, +data.lat, FILTER.WALK);
+		let t1 = await time(+from[1], +from[0], +data.long, +data.lat, FILTER.WALK);
+		let t2 = await time(+to[1], +to[0], +data.long, +data.lat, FILTER.WALK);
 
 		map['s'][data.id] = t1;
 		map[data.id]['s'] = t1;
@@ -418,6 +465,10 @@ const generateTimeMap = async (from, to, stations) => {
 		map['e'][data.id] = t2;
 		map[data.id]['e'] = t2;
 	}
+
+	const t0 = await time(+to[1], +to[0], +from[1], +from[0], FILTER.WALK);
+	map['s']['e'] = t0;
+	map['e']['s'] = t0;
 
 	return map;
 }
@@ -522,7 +573,6 @@ const generatePriceMap = (stations, route_stations) => {
 }
 
 const generateWalkingMap = async (from, to, stations, route_stations) => {
-	const speed = 0.1;
 	const map = {
 		s: {}, // start
 		e: {}  // end
@@ -544,7 +594,17 @@ const generateWalkingMap = async (from, to, stations, route_stations) => {
 			let data2 = station2.dataValues;
 
 			if (data2.id !== data1.id) {
-				let d = await time(+data1.long, +data1.lat, +data2.long, +data2.lat);
+				let d;
+				if (MAP.time[data1.id]) {
+					if (MAP.time[data1.id][data2.id]) {
+						d = MAP.time[data1.id][data2.id];
+						console.log("FOUND!");
+					} else {
+						d = await time(+data1.long, +data1.lat, +data2.long, +data2.lat, FILTER.WALK);
+					}
+				} else {
+					d = await time(+data1.long, +data1.lat, +data2.long, +data2.lat, FILTER.WALK);
+				}
 				let t = memo[data1.id].routeId === memo[data2.id].routeId ? 0 : d;
 
 				map[data1.id][data2.id] = t;
@@ -555,8 +615,8 @@ const generateWalkingMap = async (from, to, stations, route_stations) => {
 	for (let station of stations) {
 		let data = station.dataValues;
 
-		let t1 = await time(+from[0], +from[1], +data.long, +data.lat);
-		let t2 = await time(+to[0], +to[1], +data.long, +data.lat);
+		let t1 = await time(+from[1], +from[0], +data.long, +data.lat, FILTER.WALK);
+		let t2 = await time(+to[1], +to[0], +data.long, +data.lat, FILTER.WALK);
 
 		map['s'][data.id] = t1;
 		map[data.id]['s'] = t1;
@@ -565,12 +625,18 @@ const generateWalkingMap = async (from, to, stations, route_stations) => {
 		map[data.id]['e'] = t2;
 	}
 
+	const t0 = await time(+to[1], +to[0], +from[1], +from[0], FILTER.WALK);
+	map['s']['e'] = t0;
+	map['e']['s'] = t0;
+
 	return map;
 }
 
 const generateMap = async (from, to, filter) => {
 	const stations = await Stations.findAll({ attributes: ['id', 'long', 'lat'] });
 	const route_stations = await RouteStations.findAll({ attributes: ['routeId', 'stationId', 'price'] });
+
+	MAP = JSON.parse(fs.readFileSync("./MAP.json"));
 
 	let map;
 
@@ -600,6 +666,7 @@ async function FindRoute (req, res) {
 	const graph = new Graph(map);
 
 	let routes = graph.kShortestPaths('s', 'e', n);
+	console.log(routes);
 
 	routes = routes.map(route => {
 		const decimalPlace = 1e2;
@@ -609,7 +676,13 @@ async function FindRoute (req, res) {
 		return { price: p, route };
 	});
 
-	const output = { routes, filter, n };
+	const driving = {
+		car: await time(from_y, from_x, to_y, to_x, FILTER.DRIVE),
+		bicycle: distance(from_y, from_x, to_y, to_x) / AVERAGE_BICYCLE_SPEED / 60
+	};
+
+	const output = { routes, driving, filter, n };
+	console.log(output.driving);
 
 	res.json(output);
 }
