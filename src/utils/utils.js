@@ -9,7 +9,7 @@ function ExtendableBuiltin (cls) {
   return ExtendableBuiltin
 }
 
-export function createResponse (data, message = null, status = 200) {
+function createResponse (data, message = null, status = 200) {
   const success = status < 400
   return {
     success,
@@ -18,7 +18,7 @@ export function createResponse (data, message = null, status = 200) {
   }
 }
 
-export function parseQueryOptions (query, defs = {}) {
+function parseQueryOptions (query, defs = {}) {
   const options = JSON.parse(JSON.stringify(defs))
   const {
     page = 1,
@@ -48,4 +48,9 @@ export function parseQueryOptions (query, defs = {}) {
     console.log(options.sort)
   }
   return options
+}
+
+module.exports = {
+  ExtendableBuiltin,
+  parseQueryOptions
 }

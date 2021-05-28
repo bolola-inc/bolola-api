@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
     "local:build": "node_modules/webpack/bin/webpack.js --config webpack.config.js",
     "test": "yarn run test-unit && yarn run test-integration",
     "test-unit": "NODE_ENV=test node ./node_modules/.bin/mocha tests/unit/*.test.js",
@@ -22,7 +22,7 @@
     "node-fetch": "^2.6.0",
     "nodemailer": "^6.4.3",
     "nodemailer-smtp-transport": "^2.7.4",
-    "pg": "^6.1.0",
+    "pg": "^8.6.0",
     "pug": "^2.0.0-rc.4",
     "sequelize": "^5.21.3",
     "sequelize-cli": "^5.5.1",

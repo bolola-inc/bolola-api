@@ -14,9 +14,15 @@ async function UpdateHost (req, res) {
 }
 
 async function GetHosts (req, res) {
-  const hosts = await models.Hosts.findAll()
+  try{
+    const hosts = await models.Hosts.findAll()
 
-  res.send(hosts)
+    res.send(hosts)
+  }catch (e){
+    console.log(e)
+
+  }
+
 }
 
 async function GetHostById (req, res) {

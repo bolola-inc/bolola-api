@@ -1,7 +1,7 @@
-import Stations from '../models/Stations'
-import { parseQueryOptions } from '../utils/utils'
+const Stations = require('../models/Stations')
+const { parseQueryOptions } = require('../utils/utils')
 
-export function queryStations (params) {
+function queryStations (params) {
   const options = parseQueryOptions(params)
   const query = {}
   return Stations.paginate(query, options).then((result) => {
@@ -11,23 +11,30 @@ export function queryStations (params) {
   })
 }
 
-export function getSingleStation (id) {
+function getSingleStation (id) {
   return Stations.findById(id)
 }
 
-export function createStation (userId, data) {
+function createStation (userId, data) {
   return Stations.create(userId, data)
 }
 
-export function updateStation (id, data) {
+function updateStation (id, data) {
   return getSingleStatiion(id).then((st) => {
     st.mergeWithData(data)
     return st.save()
   })
 }
 
-export function deleteStation (id) {
+function deleteStation (id) {
   return getSingleStation(id).then((st) => {
     return st.delete()
   })
+}
+
+module.exports = {
+  deleteStation,
+  updateStation,
+  getSingleStation,
+  queryStations,
 }
