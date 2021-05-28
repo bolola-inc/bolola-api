@@ -1,11 +1,11 @@
-import { createResponse } from './utils';
-import {
+const { createResponse } = require('../utils');
+const {
   queryStations,
   createStation,
   getSingleStation,
   updateStation,
   deleteStation,
-} from 'services/stations';
+} = require('../services/stations');
 const { sequelize } = require('../models/index');
 const StationNames = sequelize.import('../models/StationNames');
 const Stations = sequelize.import('../models/Stations');
