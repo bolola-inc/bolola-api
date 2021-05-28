@@ -9,6 +9,7 @@ const FavouritesRoute = require("./FavouritesRoute");
 const StationSearchRoutes = require('./StationSearchRoutes');
 const StationsRoute = require('./StationsRoute');
 const SearchRoute = require('./SearchRoutes');
+const RoutesRoutes = require("./RoutesRoutes")
 
 const registerRouters = async () => {
   await Auth(router);
@@ -17,6 +18,7 @@ const registerRouters = async () => {
   await FindRoute(router);
   await SearchRoute(router);
   await FavouritesRoute(router);
+  await RoutesRoutes(router);
   await StationSearchRoutes(router);
   await StationsRoute(router);
 

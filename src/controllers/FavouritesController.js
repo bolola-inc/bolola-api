@@ -10,17 +10,7 @@ async function GetFavourites (req, res) {
 }
 
 async function CreateFavourites (req, res) {
-  try {
-    await models.Favourites.destroy({
-      where: {
-        id: req.body.id
-      }
-    })
-  }
-  catch (e) {
-    console.warn(e);
-  }
-  const favourites = await models.Favourites.create({ ...req.body, userId: req.user.id })
+  const favourites = await models.Favourites.create({ ...req.body, userId: req.user.id, createdAt: Date().toISOString() })
   res.send(favourites)
 }
 
