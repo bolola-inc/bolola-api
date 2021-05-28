@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js.js",
     "local:build": "node_modules/webpack/bin/webpack.js --config webpack.config.js",
     "test": "yarn run test-unit && yarn run test-integration",
     "test-unit": "NODE_ENV=test node ./node_modules/.bin/mocha tests/unit/*.test.js",
@@ -14,6 +14,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
     "dotenv": "^8.1.0",
     "esm": "^3.2.25",
     "express": "^4.17.1",
