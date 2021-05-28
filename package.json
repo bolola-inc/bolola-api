@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node index.js.js",
+    "start": "node index.js",
     "local:build": "node_modules/webpack/bin/webpack.js --config webpack.config.js",
     "test": "yarn run test-unit && yarn run test-integration",
     "test-unit": "NODE_ENV=test node ./node_modules/.bin/mocha tests/unit/*.test.js",
